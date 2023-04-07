@@ -118,26 +118,24 @@ while True:
         pass
 
     image = cv2.imdecode(airsim.string_to_uint8_array(temp_image), cv2.IMREAD_COLOR)
-    cv2.imwrite('obj/visual'+str(counter)+'.png', image)
     cylinders = AirSim_client.simGetDetections("0", image_types["scene"])
     if cylinders:
         for cylinder in cylinders:
+            cv2.imwrite('obj/visual'+str(counter)+'.png', image)
             s = pprint.pformat(cylinder)
             print("Cylinder: %s" % s)
             cv2.rectangle(image,(int(cylinder.box2D.min.x_val),int(cylinder.box2D.min.y_val)),(int(cylinder.box2D.max.x_val),int(cylinder.box2D.max.y_val)),(255,0,0),2)
             cv2.putText(image, cylinder.name, (int(cylinder.box2D.min.x_val),int(cylinder.box2D.min.y_val - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (36,255,12))
-
-    x_center = (int(cylinder.box2D.min.x_val) + int(cylinder.box2D.max.x_val)) / (2 * 854)
-    y_center = (int(cylinder.box2D.min.y_val) + int(cylinder.box2D.max.y_val)) / (2 * 480)
-    width = (int(cylinder.box2D.max.x_val) - int(cylinder.box2D.min.x_val)) / 480
-    height = (int(cylinder.box2D.max.y_val) - int(cylinder.box2D.min.y_val)) / 854
+            x_center = (int(cylinder.box2D.min.x_val) + int(cylinder.box2D.max.x_val)) / (2 * 854)
+            y_center = (int(cylinder.box2D.min.y_val) + int(cylinder.box2D.max.y_val)) / (2 * 480)
+            width = (int(cylinder.box2D.max.x_val) - int(cylinder.box2D.min.x_val)) / 480
+            height = (int(cylinder.box2D.max.y_val) - int(cylinder.box2D.min.y_val)) / 854
+            f = open('obj/visual'+str(counter)+'.txt','a')
+            f.write('0 '+str(x_center)+' '+str(y_center)+' '+str(width)+' '+str(height))
+            counter = counter+1
 
     cv2.imwrite('obj/visual.png', image)
-    f = open('obj/visual'+str(counter)+'.txt','a')
-    f.write('0 '+str(x_center)+' '+str(y_center)+' '+str(width)+' '+str(height))
-
     screen_image = pygame.image.load('obj/visual.png')
-    counter = counter+1
     screen.blit(screen_image, (0, 0))
     pygame.display.flip()
     pygame.display.update()
