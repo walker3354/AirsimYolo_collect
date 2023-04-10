@@ -6,11 +6,13 @@ import pygame
 import numpy as np 
 import pprint
 
+resolution_x = 480
+resolution_y = 480
 
 counter = 0
 pygame.init()#初始化pygame
-screen = pygame.display.set_mode((854,480))#顯示攝影機
-pygame.display.set_caption('press c to collect element')
+screen = pygame.display.set_mode((resolution_x,resolution_y))#顯示攝影機
+pygame.display.set_caption('press f to collect element')
 screen.fill((0, 0, 0))
     
 AirSim_client = airsim.MultirotorClient()#宣告airsim物件
@@ -119,6 +121,8 @@ while True:
 
     image = cv2.imdecode(airsim.string_to_uint8_array(temp_image), cv2.IMREAD_COLOR)
     cylinders = AirSim_client.simGetDetections("0", image_types["scene"])
+    
+    
     if cylinders:
         for cylinder in cylinders:
             cv2.imwrite('obj/visual'+str(counter)+'.png', image)
@@ -126,13 +130,17 @@ while True:
             print("Cylinder: %s" % s)
             cv2.rectangle(image,(int(cylinder.box2D.min.x_val),int(cylinder.box2D.min.y_val)),(int(cylinder.box2D.max.x_val),int(cylinder.box2D.max.y_val)),(255,0,0),2)
             cv2.putText(image, cylinder.name, (int(cylinder.box2D.min.x_val),int(cylinder.box2D.min.y_val - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (36,255,12))
-            x_center = (int(cylinder.box2D.min.x_val) + int(cylinder.box2D.max.x_val)) / (2 * 854)
-            y_center = (int(cylinder.box2D.min.y_val) + int(cylinder.box2D.max.y_val)) / (2 * 480)
-            width = (int(cylinder.box2D.max.x_val) - int(cylinder.box2D.min.x_val)) / 480
-            height = (int(cylinder.box2D.max.y_val) - int(cylinder.box2D.min.y_val)) / 854
-            f = open('obj/visual'+str(counter)+'.txt','a')
-            f.write('0 '+str(x_center)+' '+str(y_center)+' '+str(width)+' '+str(height))
-            counter = counter+1
+            if scan_wrapper[pygame.K_f]:
+                pygame.display.set_caption('collecting Number '+str(counter+1)+'element')
+                x_center = (int(cylinder.box2D.min.x_val) + int(cylinder.box2D.max.x_val)) / (2 * resolution_x)
+                y_center = (int(cylinder.box2D.min.y_val) + int(cylinder.box2D.max.y_val)) / (2 * resolution_y)
+                width = (int(cylinder.box2D.max.x_val) - int(cylinder.box2D.min.x_val)) / resolution_x
+                height = (int(cylinder.box2D.max.y_val) - int(cylinder.box2D.min.y_val)) / resolution_y
+                f = open('obj/visual'+str(counter)+'.txt','a')
+                f.write('0 '+str(x_center)+' '+str(y_center)+' '+str(width)+' '+str(height))
+                counter = counter+1
+    else:
+        pygame.display.set_caption('No object detect')
 
     cv2.imwrite('obj/visual.png', image)
     screen_image = pygame.image.load('obj/visual.png')
